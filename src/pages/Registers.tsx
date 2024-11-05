@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Home, List, Navigation, Calendar, Clock, User, Building } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Home, List, Navigation, Calendar, Clock, User } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -10,120 +10,26 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Link } from "react-router-dom";
+import vigiStaic from "../statics/vigilante.jpg"
 
 interface Schedule {
-  day: string;
-  entry: string;
-  lunchStart: string;
-  lunchEnd: string;
-  exit: string;
-  hoursWorked: string;
-  totalHours: number;
+  entry: string | null;
+  lunchStart: string | null;
+  lunchEnd: string | null;
+  exit: string | null;
+  hoursWorked: string; // Ajuste conforme necessário
 }
 
 interface Colaborador {
   id: number;
   name: string;
-  rg: string;
   cpf: string;
   admissionDate: string;
-  dataNasc: string;
-  exitDate: string;
-  weeklySchedule: Schedule[];
+  birthDate: string;
+  schedules: {
+    [key: string]: Schedule;
+  };
 }
-
-const collaborators: Colaborador[] = [
-  {
-    id: 1,
-    name: "Artur Biamonti",
-    rg: "12.345.678-9",
-    cpf: "123.456.789-00",
-    dataNasc: "08/04/1997",
-    admissionDate: "01/01/2020",
-    exitDate: "N/A",
-    weeklySchedule: [
-      { day: "Segunda", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Terça", entry: "08:30 AM", lunchStart: "12:30 PM", lunchEnd: "01:00 PM", exit: "05:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quarta", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quinta", entry: "08:15 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:15 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sexta", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sábado", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "03:00 PM", hoursWorked: "5h", totalHours: 5 },
-      { day: "Domingo", entry: "", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Fernanda Almeida",
-    rg: "23.456.789-0",
-    cpf: "234.567.890-11",
-    dataNasc: "15/03/1995",
-    admissionDate: "15/02/2021",
-    exitDate: "N/A",
-    weeklySchedule: [
-      { day: "Segunda", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "02:00 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Terça", entry: "08:30 AM", lunchStart: "12:30 PM", lunchEnd: "01:00 PM", exit: "05:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quarta", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quinta", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sexta", entry: "09:30 AM", lunchStart: "01:00 PM", lunchEnd: "02:00 PM", exit: "06:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sábado", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-      { day: "Domingo", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-    ],
-  },
-  {
-    id: 3,
-    name: "Ricardo Mendes",
-    rg: "34.567.890-1",
-    cpf: "345.678.901-22",
-    dataNasc: "22/08/1989",
-    admissionDate: "10/01/2019",
-    exitDate: "N/A",
-    weeklySchedule: [
-      { day: "Segunda", entry: "08:15 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:15 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Terça", entry: "08:30 AM", lunchStart: "12:30 PM", lunchEnd: "01:00 PM", exit: "05:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quarta", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quinta", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sexta", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-      { day: "Sábado", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "03:00 PM", hoursWorked: "5h", totalHours: 5 },
-      { day: "Domingo", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-    ],
-  },
-  {
-    id: 4,
-    name: "Juliana Costa",
-    rg: "45.678.901-2",
-    cpf: "456.789.012-33",
-    dataNasc: "30/06/1992",
-    admissionDate: "20/03/2021",
-    exitDate: "N/A",
-    weeklySchedule: [
-      { day: "Segunda", entry: "09:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Terça", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-      { day: "Quarta", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quinta", entry: "08:30 AM", lunchStart: "12:30 PM", lunchEnd: "01:00 PM", exit: "05:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sexta", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "02:00 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sábado", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-      { day: "Domingo", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-    ],
-  },
-  {
-    id: 5,
-    name: "Lucas Pereira",
-    rg: "56.789.012-3",
-    cpf: "567.890.123-44",
-    dataNasc: "05/12/1990",
-    admissionDate: "10/10/2018",
-    exitDate: "N/A",
-    weeklySchedule: [
-      { day: "Segunda", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Terça", entry: "08:30 AM", lunchStart: "12:30 PM", lunchEnd: "01:00 PM", exit: "05:30 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quarta", entry: "09:00 AM", lunchStart: "01:00 PM", lunchEnd: "01:30 PM", exit: "06:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Quinta", entry: "08:15 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:15 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sexta", entry: "08:00 AM", lunchStart: "12:00 PM", lunchEnd: "01:00 PM", exit: "05:00 PM", hoursWorked: "8h", totalHours: 8 },
-      { day: "Sábado", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-      { day: "Domingo", entry: "N/A", lunchStart: "", lunchEnd: "", exit: "", hoursWorked: "Folga", totalHours: 0 },
-    ],
-  },
-];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -139,7 +45,23 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Registers() {
+  const [collaborators, setCollaborators] = useState<Colaborador[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Colaborador | null>(null);
+
+  // Fetch collaborators from API
+  useEffect(() => {
+    const fetchCollaborators = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/collaborators'); // Substitua pela URL da sua API
+        const data = await response.json();
+        setCollaborators(data); // Ajuste conforme necessário se a estrutura da resposta for diferente
+      } catch (error) {
+        console.error("Error fetching collaborators:", error);
+      }
+    };
+
+    fetchCollaborators();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -181,7 +103,7 @@ export default function Registers() {
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <img
-                        src={`/api/placeholder/120/120`}
+                        src={vigiStaic}
                         alt={selectedEmployee.name}
                         className="h-24 w-24 rounded-full object-cover ring-4 ring-indigo-50"
                       />
@@ -190,10 +112,6 @@ export default function Registers() {
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold text-gray-900 mb-1">{selectedEmployee.name}</h2>
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center text-gray-500">
-                          <Building className="h-4 w-4 mr-2" />
-                          <span>RG: {selectedEmployee.rg}</span>
-                        </div>
                         <div className="flex items-center text-gray-500">
                           <User className="h-4 w-4 mr-2" />
                           <span>CPF: {selectedEmployee.cpf}</span>
@@ -204,7 +122,7 @@ export default function Registers() {
                         </div>
                         <div className="flex items-center text-gray-500">
                           <Clock className="h-4 w-4 mr-2" />
-                          <span>Nasc.: {selectedEmployee.dataNasc}</span>
+                          <span>Nasc.: {selectedEmployee.birthDate}</span>
                         </div>
                       </div>
                     </div>
@@ -217,7 +135,10 @@ export default function Registers() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Horas Trabalhadas por Dia</h3>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={selectedEmployee.weeklySchedule}>
+                    <BarChart data={Object.entries(selectedEmployee.schedules).map(([day, schedule]) => ({
+                      day,
+                      totalHours: schedule.entry && schedule.exit ? calculateTotalHours(schedule) : 0,
+                    }))}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="day" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
@@ -250,25 +171,25 @@ export default function Registers() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {selectedEmployee.weeklySchedule.map((schedule, index) => (
-                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      {Object.entries(selectedEmployee.schedules).map(([day, schedule]) => (
+                        <tr key={day} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {schedule.day}
+                            {day}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {schedule.entry || "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.lunchStart || "-"}
+                            {schedule.lunch.start || "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.lunchEnd || "-"}
+                            {schedule.lunch.end || "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {schedule.exit || "-"}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                            {schedule.hoursWorked}
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {calculateTotalHours(schedule) || "-"}
                           </td>
                         </tr>
                       ))}
@@ -278,11 +199,8 @@ export default function Registers() {
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+<div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
           <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />
@@ -295,8 +213,29 @@ export default function Registers() {
           </Link>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   );
 }
 
+// Função para calcular as horas trabalhadas
+const calculateTotalHours = (schedule: Schedule): number => {
+  const { entry, lunchStart, lunchEnd, exit } = schedule;
+  if (entry && exit) {
+    const entryDate = new Date(`1970-01-01T${entry}:00`);
+    const exitDate = new Date(`1970-01-01T${exit}:00`);
+    const lunchStartDate = lunchStart ? new Date(`1970-01-01T${lunchStart}:00`) : null;
+    const lunchEndDate = lunchEnd ? new Date(`1970-01-01T${lunchEnd}:00`) : null;
 
+    const totalHours = (exitDate.getTime() - entryDate.getTime()) / 3600000; // Total em horas
+
+    // Subtrai as horas de almoço, se aplicável
+    if (lunchStartDate && lunchEndDate) {
+      const lunchDuration = (lunchEndDate.getTime() - lunchStartDate.getTime()) / 3600000; // Duração do almoço em horas
+      return totalHours - lunchDuration;
+    }
+    return totalHours;
+  }
+  return 0; // Se não houver entrada ou saída
+};

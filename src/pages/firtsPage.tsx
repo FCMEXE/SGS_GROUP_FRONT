@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, List, Navigation, Settings, User, UserCheck, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import axios, { type AxiosError } from 'axios';
@@ -11,8 +11,6 @@ interface Collaborator {
   birthDate: string;
   admissionDate: string;
   status: string;
-  entry?: string;
-  exit?: string;
   hoursWorked?: string;
 }
 
@@ -26,6 +24,7 @@ const initialCollaboratorState: Collaborator = {
 };
 
 const HomePage = () => {
+  const navigate = useNavigate(); // Hook para navegação
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -93,20 +92,28 @@ const HomePage = () => {
   const handleDeleteCollaborator = async (id?: number) => {
     if (id && window.confirm('Tem certeza que deseja excluir este colaborador?')) {
       try {
-        const response = await axios.delete(`http://localhost:3000/colaboradores/${id}`);
+        const response = await axios.delete(`http://localhost:3000/collaborators/${id}`);
         if (response.status === 204) { // sem conteúdo
           setCollaborators(collaborators.filter(collaborator => collaborator.id !== id));
         } else {
           console.error('Erro ao excluir colaborador:', response.statusText);
         }
       } catch (error) {
-        // Aqui estamos usando type assertion para informar ao TypeScript que `error` é do tipo `AxiosError`
         const axiosError = error as AxiosError;
         console.error('Erro ao excluir colaborador:', axiosError.response ? axiosError.response.data : axiosError.message);
       }
     }
   };
-  
+
+  // Função para expirar o token com confirmação
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Você tem certeza que deseja fazer logout?");
+    if (confirmLogout) {
+      // Remova o token do armazenamento local ou onde estiver armazenado
+      localStorage.removeItem('token'); // ou sessionStorage.removeItem('token');
+      navigate('/'); // redirecionar para a página de login
+    }
+  };
 
   return (
     <div className='flex flex-col min-h-screen mb-20'>
@@ -131,6 +138,7 @@ const HomePage = () => {
             <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10">
               <div className="p-2">
                 <button onClick={handleCreateCollaborator} className="w-full text-left px-4 py-2 hover:bg-gray-100">Criar Colaborador</button>
+                <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600">Voltar</button>
               </div>
             </div>
           )}
@@ -152,8 +160,8 @@ const HomePage = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3">Nome</th>
-              <th scope="col" className="px-6 py-3">Entrada</th>
-              <th scope="col" className="px-6 py-3">Saída</th>
+              <th scope="col" className="px-6 py-3">CPF</th>
+              <th scope="col" className="px-6 py-3">Data de Nascimento</th>
               <th scope="col" className="px-6 py-3">Horas Trabalhadas</th>
               <th scope="col" className="px-6 py-3">Status</th>
               <th scope="col" className="px-6 py-3">Ações</th>
@@ -163,8 +171,8 @@ const HomePage = () => {
             {filteredCollaborators.map(collaborator => (
               <tr key={collaborator.id} className="bg-white border-b">
                 <td className="px-6 py-4">{collaborator.name}</td>
-                <td className="px-6 py-4">{collaborator.entry}</td>
-                <td className="px-6 py-4">{collaborator.exit}</td>
+                <td className="px-6 py-4">{collaborator.cpf}</td>
+                <td className="px-6 py-4">{collaborator.birthDate}</td>
                 <td className="px-6 py-4">{collaborator.hoursWorked}</td>
                 <td className="px-6 py-4">{collaborator.status}</td>
                 <td className="px-6 py-4">
@@ -180,24 +188,68 @@ const HomePage = () => {
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl mb-4">Criar Colaborador</h2>
+            <h2 className="text-lg font-bold mb-4">Criar Colaborador</h2>
             <form onSubmit={handleSubmit}>
-              <input type="text" name="name" placeholder="Nome" value={newCollaborator.name} onChange={handleInputChange} className="w-full p-2 mb-2 border rounded-lg" required />
-              <input type="password" name="password" placeholder="Senha" value={newCollaborator.password} onChange={handleInputChange} className="w-full p-2 mb-2 border rounded-lg" required />
-              <input type="text" name="cpf" placeholder="CPF" value={newCollaborator.cpf} onChange={handleInputChange} className="w-full p-2 mb-2 border rounded-lg" required />
-              <input type="date" name="birthDate" value={newCollaborator.birthDate} onChange={handleInputChange} className="w-full p-2 mb-2 border rounded-lg" required />
-              <input type="date" name="admissionDate" value={newCollaborator.admissionDate} onChange={handleInputChange} className="w-full p-2 mb-2 border rounded-lg" required />
-              <div className="flex justify-end space-x-2">
-                <button type="button" onClick={handleModalClose} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg">Salvar</button>
+              <input
+                type="text"
+                name="name"
+                placeholder="Nome"
+                value={newCollaborator.name}
+                onChange={handleInputChange}
+                className="w-full p-3 mb-3 border rounded"
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Senha"
+                value={newCollaborator.password}
+                onChange={handleInputChange}
+                className="w-full p-3 mb-3 border rounded"
+                required
+              />
+              <input
+                type="text"
+                name="cpf"
+                placeholder="CPF"
+                value={newCollaborator.cpf}
+                onChange={handleInputChange}
+                className="w-full p-3 mb-3 border rounded"
+                required
+              />
+              <input
+                type="date"
+                name="birthDate"
+                placeholder="Data de Nascimento"
+                value={newCollaborator.birthDate}
+                onChange={handleInputChange}
+                className="w-full p-3 mb-3 border rounded"
+                required
+              />
+              <input
+                type="date"
+                name="admissionDate"
+                placeholder="Data de Admissão"
+                value={newCollaborator.admissionDate}
+                onChange={handleInputChange}
+                className="w-full p-3 mb-3 border rounded"
+                required
+              />
+              <div className="flex justify-between mt-4">
+                <button type="button" onClick={handleModalClose} className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded">
+                  Cancelar
+                </button>
+                <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                  Criar
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+       {/* Bottom Navigation */}
+       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
           <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />

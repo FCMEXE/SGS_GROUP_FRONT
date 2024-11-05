@@ -1,6 +1,6 @@
 import { Home, List, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Colaborador {
   id: number;
@@ -8,18 +8,30 @@ interface Colaborador {
   totalHours: number; // total de horas trabalhadas
 }
 
-const colaboradores: Colaborador[] = [
-  { id: 1, name: "Artur Biamonti", totalHours: 40 },
-  { id: 2, name: "João Silva", totalHours: 35 },
-  { id: 3, name: "Maria Oliveira", totalHours: 38 },
-  { id: 4, name: "Lucas Almeida", totalHours: 42 },
-  { id: 5, name: "Ana Costa", totalHours: 30 },
-];
-
 export default function VigiRoutes() {
   const [email, setEmail] = useState("");
   const [selectedColaboradores, setSelectedColaboradores] = useState<number[]>([]);
   const [filter, setFilter] = useState("");
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>([]); // Estado para armazenar colaboradores
+  const [loading, setLoading] = useState(true); // Estado para gerenciar o carregamento
+
+  // Função para buscar colaboradores da API
+  const fetchColaboradores = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/collaborators"); // Substitua pela URL da sua API
+      const data = await response.json();
+      setColaboradores(data);
+    } catch (error) {
+      console.error("Erro ao buscar colaboradores:", error);
+    } finally {
+      setLoading(false); // Atualiza o estado de loading
+    }
+  };
+
+  // Use o useEffect para buscar colaboradores quando o componente for montado
+  useEffect(() => {
+    fetchColaboradores();
+  }, []);
 
   const handleSelectColaborador = (id: number) => {
     setSelectedColaboradores((prev) =>
@@ -44,9 +56,13 @@ export default function VigiRoutes() {
     colaborador.name.toLowerCase().includes(filter.toLowerCase())
   );
 
+  if (loading) {
+    return <div className="text-center">Carregando colaboradores...</div>; // Mensagem de carregamento
+  }
+
   return (
     <div className="h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <main className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg  ">
+      <main className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
         <h1 className="text-3xl font-bold mb-4 text-center text-indigo-600">Enviar Extrato de Colaboradores</h1>
         <input
           type="email"

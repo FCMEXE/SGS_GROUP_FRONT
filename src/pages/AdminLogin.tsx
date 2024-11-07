@@ -63,9 +63,7 @@ const LoginPage = () => {
       // Redireciona com base no papel do usuário
       if (role === 'admin') {
         navigate('/FirstPage'); // Corrija o nome da rota se necessário
-      } else {
-        navigate('/point')
-      }
+      } 
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);

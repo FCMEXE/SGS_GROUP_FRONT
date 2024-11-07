@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Link } from "react-router-dom";
-import vigiStaic from "../statics/vigilante.jpg"
+import vigiStaic from "../statics/vigilante.jpg";
 
 interface Schedule {
   entry: string | null;
@@ -31,6 +31,7 @@ interface Colaborador {
   };
 }
 
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -44,7 +45,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function Registers() {
+const Registers: React.FC = () => {
   const [collaborators, setCollaborators] = useState<Colaborador[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Colaborador | null>(null);
 
@@ -62,6 +63,25 @@ export default function Registers() {
 
     fetchCollaborators();
   }, []);
+
+  // Função para calcular o total de horas trabalhadas
+  const calculateTotalHours = (schedule: Schedule) => {
+    if (!schedule.entry || !schedule.exit) return 0;
+
+    const entryDate = new Date(`1970-01-01T${schedule.entry}Z`);
+    const exitDate = new Date(`1970-01-01T${schedule.exit}Z`);
+
+    let totalHours = (exitDate.getTime() - entryDate.getTime()) / 1000 / 60 / 60;
+
+    if (schedule.lunchStart && schedule.lunchEnd) {
+      const lunchStartDate = new Date(`1970-01-01T${schedule.lunchStart}Z`);
+      const lunchEndDate = new Date(`1970-01-01T${schedule.lunchEnd}Z`);
+
+      totalHours -= (lunchEndDate.getTime() - lunchStartDate.getTime()) / 1000 / 60 / 60;
+    }
+
+    return totalHours;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -172,24 +192,16 @@ export default function Registers() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {Object.entries(selectedEmployee.schedules).map(([day, schedule]) => (
-                        <tr key={day} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {day}
-                          </td>
+                        <tr key={day} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{day}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.entry || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunchStart || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunchEnd || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.exit || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.entry || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.lunch.start || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.lunch.end || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.exit || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {calculateTotalHours(schedule) || "-"}
+                            {schedule.entry && schedule.exit
+                              ? `${calculateTotalHours(schedule).toFixed(2)}h`
+                              : '-'}
                           </td>
                         </tr>
                       ))}
@@ -200,16 +212,17 @@ export default function Registers() {
             </div>
           )}
 
-<div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+           {/* Navegação inferior */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
           <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/registers" className="p-2 rounded-full bg-indigo-100">
-            <List className="h-6 w-6 text-indigo-600" />
+          <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <List className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/rotas" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <Navigation className="h-6 w-6 text-gray-600" />
+          <Link to="/rotas" className="p-2 rounded-full bg-indigo-100">
+            <Navigation className="h-6 w-6 text-indigo-600" />
           </Link>
         </div>
       </div>
@@ -217,25 +230,6 @@ export default function Registers() {
       </div>
     </div>
   );
-}
-
-// Função para calcular as horas trabalhadas
-const calculateTotalHours = (schedule: Schedule): number => {
-  const { entry, lunchStart, lunchEnd, exit } = schedule;
-  if (entry && exit) {
-    const entryDate = new Date(`1970-01-01T${entry}:00`);
-    const exitDate = new Date(`1970-01-01T${exit}:00`);
-    const lunchStartDate = lunchStart ? new Date(`1970-01-01T${lunchStart}:00`) : null;
-    const lunchEndDate = lunchEnd ? new Date(`1970-01-01T${lunchEnd}:00`) : null;
-
-    const totalHours = (exitDate.getTime() - entryDate.getTime()) / 3600000; // Total em horas
-
-    // Subtrai as horas de almoço, se aplicável
-    if (lunchStartDate && lunchEndDate) {
-      const lunchDuration = (lunchEndDate.getTime() - lunchStartDate.getTime()) / 3600000; // Duração do almoço em horas
-      return totalHours - lunchDuration;
-    }
-    return totalHours;
-  }
-  return 0; // Se não houver entrada ou saída
 };
+
+export default Registers;

@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import axios, { type AxiosError } from 'axios';
 
 interface Collaborator {
+  [x: string]: string | number | readonly string[] | undefined;
   id?: number;
   name: string;
   password: string;
   cpf: string;
   birthDate: string;
   admissionDate: string;
-  status: string;
+  status: 'ativo' | 'offline' | 'em rota';
   hoursWorked?: string;
 }
 
@@ -24,9 +25,9 @@ const initialCollaboratorState: Collaborator = {
 };
 
 const HomePage = () => {
-  const navigate = useNavigate(); // Hook para navegação
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState<'todos' | 'ativo' | 'offline' | 'em rota'>('todos');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [newCollaborator, setNewCollaborator] = useState<Collaborator>(initialCollaboratorState);
@@ -78,14 +79,22 @@ const HomePage = () => {
 
     try {
       const response = await axios.post("http://localhost:3000/collaborators", newCollaborator);
+
       if (response.status === 201) {
         setCollaborators(prev => [...prev, response.data]);
         handleModalClose();
       } else {
         console.error("Erro ao adicionar colaborador:", response.statusText);
+        alert("Erro ao adicionar colaborador: " + response.statusText);
       }
     } catch (error) {
-      console.error("Erro de rede:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Erro de requisição:", error.response ? error.response.data : error.message);
+        alert("Erro de requisição: " + (error.response ? error.response.data : error.message));
+      } else {
+        console.error("Erro de rede:", error);
+        alert("Erro de rede: " + error);
+      }
     }
   };
 
@@ -93,7 +102,7 @@ const HomePage = () => {
     if (id && window.confirm('Tem certeza que deseja excluir este colaborador?')) {
       try {
         const response = await axios.delete(`http://localhost:3000/collaborators/${id}`);
-        if (response.status === 204) { // sem conteúdo
+        if (response.status === 204) {
           setCollaborators(collaborators.filter(collaborator => collaborator.id !== id));
         } else {
           console.error('Erro ao excluir colaborador:', response.statusText);
@@ -105,13 +114,11 @@ const HomePage = () => {
     }
   };
 
-  // Função para expirar o token com confirmação
   const handleLogout = () => {
     const confirmLogout = window.confirm("Você tem certeza que deseja fazer logout?");
     if (confirmLogout) {
-      // Remova o token do armazenamento local ou onde estiver armazenado
-      localStorage.removeItem('token'); // ou sessionStorage.removeItem('token');
-      navigate('/'); // redirecionar para a página de login
+      localStorage.removeItem('token');
+      navigate('/'); // Redireciona para a página de login
     }
   };
 
@@ -122,11 +129,11 @@ const HomePage = () => {
           <h1 className="text-2xl font-bold text-gray-800 mr-6">Gerenciador de Colaboradores</h1>
           <div className="flex items-center space-x-6">
             {['todos', 'ativo', 'offline', 'em rota'].map(status => (
-              <div key={status} className="flex items-center space-x-2" onClick={() => setStatusFilter(status)}>
-                {status === 'todos' ? <User className="text-gray-500 hover:text-gray-700 cursor-pointer" /> : null}
-                {status === 'ativo' ? <UserCheck className="text-green-500 hover:text-green-700 cursor-pointer" /> : null}
-                {status === 'offline' ? <X className="text-red-500 hover:text-red-700 cursor-pointer" /> : null}
-                {status === 'em rota' ? <Navigation className="text-blue-500 hover:text-blue-700 cursor-pointer" /> : null}
+              <div key={status} className="flex items-center space-x-2" onClick={() => setStatusFilter(status as 'todos' | 'ativo' | 'offline' | 'em rota')}>
+                {status === 'todos' && <User className="text-gray-500 hover:text-gray-700 cursor-pointer" />}
+                {status === 'ativo' && <UserCheck className="text-green-500 hover:text-green-700 cursor-pointer" />}
+                {status === 'offline' && <X className="text-red-500 hover:text-red-700 cursor-pointer" />}
+                {status === 'em rota' && <Navigation className="text-blue-500 hover:text-blue-700 cursor-pointer" />}
                 <span className="text-gray-700 font-medium">{status}</span>
               </div>
             ))}
@@ -196,8 +203,15 @@ const HomePage = () => {
                 placeholder="Nome"
                 value={newCollaborator.name}
                 onChange={handleInputChange}
-                className="w-full p-3 mb-3 border rounded"
-                required
+                className="w-full p-2 mb-4 border rounded-lg"
+              />
+              <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={newCollaborator.username}
+                onChange={handleInputChange}
+                className="w-full p-2 mb-4 border rounded-lg"
               />
               <input
                 type="password"
@@ -205,8 +219,7 @@ const HomePage = () => {
                 placeholder="Senha"
                 value={newCollaborator.password}
                 onChange={handleInputChange}
-                className="w-full p-3 mb-3 border rounded"
-                required
+                className="w-full p-2 mb-4 border rounded-lg"
               />
               <input
                 type="text"
@@ -214,8 +227,7 @@ const HomePage = () => {
                 placeholder="CPF"
                 value={newCollaborator.cpf}
                 onChange={handleInputChange}
-                className="w-full p-3 mb-3 border rounded"
-                required
+                className="w-full p-2 mb-4 border rounded-lg"
               />
               <input
                 type="date"
@@ -223,8 +235,7 @@ const HomePage = () => {
                 placeholder="Data de Nascimento"
                 value={newCollaborator.birthDate}
                 onChange={handleInputChange}
-                className="w-full p-3 mb-3 border rounded"
-                required
+                className="w-full p-2 mb-4 border rounded-lg"
               />
               <input
                 type="date"
@@ -232,33 +243,27 @@ const HomePage = () => {
                 placeholder="Data de Admissão"
                 value={newCollaborator.admissionDate}
                 onChange={handleInputChange}
-                className="w-full p-3 mb-3 border rounded"
-                required
+                className="w-full p-2 mb-4 border rounded-lg"
               />
-              <div className="flex justify-between mt-4">
-                <button type="button" onClick={handleModalClose} className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded">
-                  Cancelar
-                </button>
-                <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                  Criar
-                </button>
+              <div className="flex justify-between">
+                <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-lg">Salvar</button>
+                <button type="button" onClick={handleModalClose} className="bg-gray-500 text-white px-6 py-2 rounded-lg">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-       {/* Bottom Navigation */}
-       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+      {/* Navegação inferior */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
           <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/registers" className="p-2 rounded-full bg-indigo-100">
-            <List className="h-6 w-6 text-indigo-600" />
+          <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <List className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/rotas" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <Navigation className="h-6 w-6 text-gray-600" />
+          <Link to="/rotas" className="p-2 rounded-full bg-indigo-100">
+            <Navigation className="h-6 w-6 text-indigo-600" />
           </Link>
         </div>
       </div>

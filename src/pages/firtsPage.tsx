@@ -11,7 +11,7 @@ interface Collaborator {
   cpf: string;
   birthDate: string;
   admissionDate: string;
-  status: 'ativo' | 'offline' | 'em rota';
+  status: 'online' | 'offline' | 'em rota';
   hoursWorked?: string;
 }
 
@@ -128,10 +128,10 @@ const HomePage = () => {
         <div className="flex items-center rounded-lg">
           <h1 className="text-2xl font-bold text-gray-800 mr-6">Gerenciador de Colaboradores</h1>
           <div className="flex items-center space-x-6">
-            {['todos', 'ativo', 'offline', 'em rota'].map(status => (
+            {['todos', 'online', 'offline', 'em rota'].map(status => (
               <div key={status} className="flex items-center space-x-2" onClick={() => setStatusFilter(status as 'todos' | 'ativo' | 'offline' | 'em rota')}>
                 {status === 'todos' && <User className="text-gray-500 hover:text-gray-700 cursor-pointer" />}
-                {status === 'ativo' && <UserCheck className="text-green-500 hover:text-green-700 cursor-pointer" />}
+                {status === 'online' && <UserCheck className="text-green-500 hover:text-green-700 cursor-pointer" />}
                 {status === 'offline' && <X className="text-red-500 hover:text-red-700 cursor-pointer" />}
                 {status === 'em rota' && <Navigation className="text-blue-500 hover:text-blue-700 cursor-pointer" />}
                 <span className="text-gray-700 font-medium">{status}</span>
@@ -163,33 +163,31 @@ const HomePage = () => {
       </div>
 
       <div className="flex-grow bg-gray-100 flex items-center justify-center p-4">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3">Nome</th>
-              <th scope="col" className="px-6 py-3">CPF</th>
-              <th scope="col" className="px-6 py-3">Data de Nascimento</th>
-              <th scope="col" className="px-6 py-3">Horas Trabalhadas</th>
-              <th scope="col" className="px-6 py-3">Status</th>
-              <th scope="col" className="px-6 py-3">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCollaborators.map(collaborator => (
-              <tr key={collaborator.id} className="bg-white border-b">
-                <td className="px-6 py-4">{collaborator.name}</td>
-                <td className="px-6 py-4">{collaborator.cpf}</td>
-                <td className="px-6 py-4">{collaborator.birthDate}</td>
-                <td className="px-6 py-4">{collaborator.hoursWorked}</td>
-                <td className="px-6 py-4">{collaborator.status}</td>
-                <td className="px-6 py-4">
-                  <X className="text-red-500 cursor-pointer hover:text-red-700" onClick={() => handleDeleteCollaborator(collaborator.id)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  <table className="w-full text-sm text-left text-gray-500">
+    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+      <tr>
+        <th scope="col" className="px-6 py-3">Nome</th>
+        <th scope="col" className="px-6 py-3">CPF</th>
+        <th scope="col" className="px-6 py-3">Data de Nascimento</th>
+        <th scope="col" className="px-6 py-3">Status</th>
+        <th scope="col" className="px-6 py-3">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredCollaborators.map(collaborator => (
+        <tr key={collaborator.id} className="bg-white border-b">
+          <td className="px-6 py-4">{collaborator.name}</td>
+          <td className="px-6 py-4">{collaborator.cpf}</td>
+          <td className="px-6 py-4">{collaborator.birthDate}</td>
+          <td className="px-6 py-4">{collaborator.status}</td>
+          <td className="px-6 py-4">
+            <X className="text-red-500 cursor-pointer hover:text-red-700" onClick={() => handleDeleteCollaborator(collaborator.id)} />
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
       {/* Modal para criar colaborador */}
       {modalOpen && (
@@ -256,14 +254,14 @@ const HomePage = () => {
       {/* Navegação inferior */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
-          <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <Home className="h-6 w-6 text-gray-600" />
+          <Link to="/firstPage" className="p-2 rounded-full bg-indigo-100">
+            <Home className="h-6 w-6 text-indigo-600" />
           </Link>
           <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <List className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/rotas" className="p-2 rounded-full bg-indigo-100">
-            <Navigation className="h-6 w-6 text-indigo-600" />
+          <Link to="/rotas" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <Navigation className="h-6 w-6 text-gray-600" />
           </Link>
         </div>
       </div>

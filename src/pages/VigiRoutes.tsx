@@ -61,7 +61,7 @@ export default function VigiRoutes() {
   }
 
   return (
-    <div className="h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="h-screen bg-gray-100 flex flex-col items-center justify-center p-4 pb-20"> {/* Adicionando padding-bottom */}
       <main className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
         <h1 className="text-3xl font-bold mb-4 text-center text-indigo-600">Enviar Extrato de Colaboradores</h1>
         <input
@@ -90,7 +90,6 @@ export default function VigiRoutes() {
             <tr>
               <th className="border-b p-3 text-left">Selecionar</th>
               <th className="border-b p-3 text-left">Nome</th>
-              <th className="border-b p-3 text-left">Total de Horas</th>
             </tr>
           </thead>
           <tbody>
@@ -119,16 +118,16 @@ export default function VigiRoutes() {
         </button>
       </main>
 
-      {/* Navegação inferior */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
-          <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+      {/* Navegação inferior com mais padding */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg py-4"> {/* Aumento o padding para os ícones não ficarem no limite */}
+        <div className="max-w-md mx-auto px-4 flex justify-around">
+          <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />
           </Link>
           <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <List className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/firstPage" className="p-2 rounded-full bg-indigo-100">
+          <Link to="/rotas" className="p-2 rounded-full bg-indigo-100">
             <Navigation className="h-6 w-6 text-indigo-600" />
           </Link>
         </div>

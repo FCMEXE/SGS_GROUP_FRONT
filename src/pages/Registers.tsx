@@ -10,12 +10,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Link } from "react-router-dom";
-import vigiStaic from "../statics/vigilante.jpg";
+import vigiStaic from "../statics/profileUser.jpg";
 
 interface Schedule {
   entry: string | null;
-  lunchStart: string | null;
-  lunchEnd: string | null;
+  lunch: {
+    start: string | null;
+    end: string | null;
+  };
   exit: string | null;
   hoursWorked: string; // Ajuste conforme necessário
 }
@@ -30,7 +32,6 @@ interface Colaborador {
     [key: string]: Schedule;
   };
 }
-
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -73,9 +74,9 @@ const Registers: React.FC = () => {
 
     let totalHours = (exitDate.getTime() - entryDate.getTime()) / 1000 / 60 / 60;
 
-    if (schedule.lunchStart && schedule.lunchEnd) {
-      const lunchStartDate = new Date(`1970-01-01T${schedule.lunchStart}Z`);
-      const lunchEndDate = new Date(`1970-01-01T${schedule.lunchEnd}Z`);
+    if (schedule.lunch.start && schedule.lunch.end) {
+      const lunchStartDate = new Date(`1970-01-01T${schedule.lunch.start}Z`);
+      const lunchEndDate = new Date(`1970-01-01T${schedule.lunch.end}Z`);
 
       totalHours -= (lunchEndDate.getTime() - lunchStartDate.getTime()) / 1000 / 60 / 60;
     }
@@ -184,24 +185,22 @@ const Registers: React.FC = () => {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dia</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almoço</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retorno</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almoço Início</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almoço Retorno</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saída</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {Object.entries(selectedEmployee.schedules).map(([day, schedule]) => (
-                        <tr key={day} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{day}</td>
+                        <tr key={day}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{day}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.entry || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunchStart || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunchEnd || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunch.start || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.lunch.end || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{schedule.exit || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {schedule.entry && schedule.exit
-                              ? `${calculateTotalHours(schedule).toFixed(2)}h`
-                              : '-'}
+                            {schedule.entry && schedule.exit ? `${calculateTotalHours(schedule).toFixed(2)}h` : '-'}
                           </td>
                         </tr>
                       ))}
@@ -211,18 +210,17 @@ const Registers: React.FC = () => {
               </div>
             </div>
           )}
-
            {/* Navegação inferior */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-around">
           <Link to="/firstPage" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <Home className="h-6 w-6 text-gray-600" />
           </Link>
-          <Link to="/registers" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <List className="h-6 w-6 text-gray-600" />
+          <Link to="/registers" className="p-2 rounded-full bg-indigo-100">
+            <List className="h-6 w-6 text-indigo-600" />
           </Link>
-          <Link to="/rotas" className="p-2 rounded-full bg-indigo-100">
-            <Navigation className="h-6 w-6 text-indigo-600" />
+          <Link to="/rotas" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <Navigation className="h-6 w-6 text-gray-600" />
           </Link>
         </div>
       </div>
